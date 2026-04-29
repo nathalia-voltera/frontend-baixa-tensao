@@ -1,0 +1,20 @@
+<svg width="240" height="80" viewBox="0 0 240 80" fill="none" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid meet">
+<g>
+  <!-- circular brown chef medallion on the left -->
+  <circle cx="42" cy="40" r="28" fill="#7d3a14" />
+  <circle cx="42" cy="40" r="24" fill="#c97c2a" />
+  <!-- chef hat -->
+  <path d="M28 30 q3 -14 14 -14 q11 0 14 14 z" fill="#fff" stroke="#000" stroke-width="1.2" stroke-linejoin="round" />
+  <rect x="28" y="28" width="28" height="5" fill="#fff" stroke="#000" stroke-width="1.2" />
+  <!-- chef face -->
+  <circle cx="42" cy="42" r="9" fill="#f4c89a" stroke="#000" stroke-width="1" />
+  <!-- mustache -->
+  <path d="M37 45 q2.5 2.5 5 0 q2.5 -2.5 5 0" stroke="#000" stroke-width="1.2" fill="none" />
+  <!-- baguette -->
+  <rect x="52" y="46" width="16" height="5" rx="2.5" fill="#e6b06b" stroke="#000" stroke-width="1" />
+  <!-- red rounded badge for BRICO BREAD -->
+  <rect x="84" y="14" width="148" height="52" rx="10" fill="#d62828" stroke="#000" stroke-width="2" />
+  <text x="158" y="46" font-family="Montserrat, sans-serif" font-weight="900" font-size="28" letter-spacing="1.5" text-anchor="middle" fill="#fff">BRICO</text>
+  <text x="158" y="60" font-family="Montserrat, sans-serif" font-weight="700" font-size="7" letter-spacing="3" text-anchor="middle" fill="#fff">★ BREAD ★</text>
+</g>
+</svg>
