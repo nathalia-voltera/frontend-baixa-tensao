@@ -455,6 +455,9 @@ select:focus-visible {
   text-align: center;
   margin-top: -12px;
 }
+.primaryHint--error {
+  color: #d32f2f;
+}
 
 .primaryButton {
   background: var(--green);

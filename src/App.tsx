@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { calcularApi, CalcularApiResult } from './api';
 import { bandeiraVigente } from './bandeiraVigente';
 
 import logoVoltera from './assets/figma/header/logo-voltera.svg';
@@ -32,35 +33,7 @@ type Page = 'home' | 'result';
 
 /* ---------- Domain constants ---------- */
 
-const DISTRIBUIDORAS_POR_UF: Record<string, string[]> = {
-  AC: ['Energisa Acre'],
-  AL: ['Equatorial Alagoas'],
-  AM: ['Amazonas Energia'],
-  AP: ['CEA Equatorial'],
-  BA: ['Coelba (Neoenergia)'],
-  CE: ['Enel Ceará'],
-  DF: ['Neoenergia Brasília'],
-  ES: ['EDP Espírito Santo'],
-  GO: ['Equatorial Goiás'],
-  MA: ['Equatorial Maranhão'],
-  MG: ['Cemig', 'Energisa MG', 'DMED'],
-  MS: ['Energisa MS'],
-  MT: ['Energisa MT'],
-  PA: ['Equatorial Pará'],
-  PB: ['Energisa Paraíba'],
-  PE: ['Celpe (Neoenergia)'],
-  PI: ['Equatorial Piauí'],
-  PR: ['Copel'],
-  RJ: ['Light', 'Enel Rio'],
-  RN: ['Cosern (Neoenergia)'],
-  RO: ['Energisa Rondônia'],
-  RR: ['Roraima Energia'],
-  RS: ['RGE', 'CEEE Equatorial'],
-  SC: ['Celesc', 'CERTEL'],
-  SE: ['Energisa Sergipe'],
-  SP: ['Enel SP', 'CPFL Paulista', 'CPFL Piratininga', 'EDP São Paulo', 'Elektro', 'Energisa SP'],
-  TO: ['Energisa Tocantins'],
-};
+type DistribuidoraInfo = { id: number; nome: string };
 
 type Classificacao = {
   code: string;
@@ -92,7 +65,7 @@ type CepStatus = 'idle' | 'loading' | 'success' | 'invalid' | 'error';
 type CepResult = {
   uf: string;
   localidade: string;
-  distribuidoras: string[];
+  distribuidoras: DistribuidoraInfo[];
 };
 
 function formatCep(raw: string) {
@@ -100,7 +73,7 @@ function formatCep(raw: string) {
   return digits.length > 5 ? `${digits.slice(0, 5)}-${digits.slice(5)}` : digits;
 }
 
-function useCepLookup(cep: string) {
+function useCepLookup(cep: string, distribuidorasPorUf: Record<string, DistribuidoraInfo[]>) {
   const [status, setStatus] = useState<CepStatus>('idle');
   const [result, setResult] = useState<CepResult | null>(null);
   const requestId = useRef(0);
@@ -134,7 +107,7 @@ function useCepLookup(cep: string) {
         setResult({
           uf,
           localidade: data.localidade ?? '',
-          distribuidoras: DISTRIBUIDORAS_POR_UF[uf] ?? [],
+          distribuidoras: distribuidorasPorUf[uf] ?? [],
         });
         setStatus('success');
       })
@@ -143,7 +116,7 @@ function useCepLookup(cep: string) {
         setStatus('error');
         setResult(null);
       });
-  }, [cep]);
+  }, [cep, distribuidorasPorUf]);
 
   return { status, result };
 }
@@ -525,27 +498,64 @@ function computeResult(valorStr: string, bandeira: string): CalcResult {
   };
 }
 
+function apiResultToCalcResult(api: CalcularApiResult): CalcResult {
+  const { bandeiraSelecionada, valorConta, economiasPorBandeira, projecaoAnual } = api;
+  const sel = economiasPorBandeira[bandeiraSelecionada];
+  const valorVoltera = valorConta - sel.economiaMensal;
+
+  return {
+    monthlyCards: [
+      { label: 'Sua conta de luz hoje', value: fmtBRL(valorConta), icon: iconDistribuidora, accent: false, highlight: false },
+      { label: 'Sua conta de luz com a Voltera', value: fmtBRL(valorVoltera), icon: iconEconomia, accent: false, highlight: true },
+      { label: 'Economia média', value: `${Math.round(sel.percentualEconomia)}%`, icon: iconValor, accent: true, highlight: false },
+    ],
+    tariffCards: [
+      { label: 'Em bandeira verde', value: fmtBRL(economiasPorBandeira.verde.economiaMensal), variant: 'verde' },
+      { label: 'Em bandeira amarela', value: fmtBRL(economiasPorBandeira.amarela.economiaMensal), variant: 'amarela' },
+      { label: 'Em bandeira vermelha 1', value: fmtBRL(economiasPorBandeira['vermelha-1'].economiaMensal), variant: 'vermelha-1' },
+      { label: 'Em bandeira vermelha 2', value: fmtBRL(economiasPorBandeira['vermelha-2'].economiaMensal), variant: 'vermelha-2' },
+    ],
+    yearlyData: projecaoAnual.map(({ ano, economias }) => ({
+      year: ano,
+      bars: [
+        economias.verde,
+        economias.amarela,
+        economias['vermelha-1'],
+        economias['vermelha-2'],
+      ] as [number, number, number, number],
+    })),
+  };
+}
+
 /* ---------- Home page ---------- */
 
-function HomePage({ goResult }: { goResult: (result: CalcResult) => void }) {
+function HomePage({
+  goResult,
+  distribuidorasPorUf,
+}: {
+  goResult: (result: CalcResult) => void;
+  distribuidorasPorUf: Record<string, DistribuidoraInfo[]>;
+}) {
   const [cep, setCep] = useState('');
-  const [distribuidora, setDistribuidora] = useState('');
+  const [distribuidora, setDistribuidora] = useState<DistribuidoraInfo | null>(null);
   const [classificacao, setClassificacao] = useState<string>(CLASSIFICACOES[0].code);
   const [demanda, setDemanda] = useState('');
   const [valor, setValor] = useState('');
   const bandeiraDoMes = useMemo(() => bandeiraVigente(), []);
   const [bandeira, setBandeira] = useState<string>(bandeiraDoMes);
 
-  const { status: cepStatus, result: cepResult } = useCepLookup(cep);
+  const { status: cepStatus, result: cepResult } = useCepLookup(cep, distribuidorasPorUf);
 
   // Quando o lookup do CEP retorna, escolhe a primeira distribuidora do estado por padrão.
   useEffect(() => {
     if (cepResult && cepResult.distribuidoras.length > 0) {
       setDistribuidora((current) =>
-        current && cepResult.distribuidoras.includes(current) ? current : cepResult.distribuidoras[0],
+        current && cepResult.distribuidoras.some((d) => d.id === current.id)
+          ? current
+          : cepResult.distribuidoras[0],
       );
     } else if (cepStatus === 'idle' || cepStatus === 'invalid') {
-      setDistribuidora('');
+      setDistribuidora(null);
     }
   }, [cepResult, cepStatus]);
 
@@ -554,10 +564,30 @@ function HomePage({ goResult }: { goResult: (result: CalcResult) => void }) {
     [classificacao],
   );
 
-  const onSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+  const [submitting, setSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState<string | null>(null);
+
+  const onSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    if (cepStatus !== 'success' || !distribuidora) return;
-    goResult(computeResult(valor, bandeira));
+    if (cepStatus !== 'success' || distribuidora === null) return;
+
+    setSubmitting(true);
+    setSubmitError(null);
+
+    try {
+      const apiResult = await calcularApi({
+        distribuidoraId: distribuidora.id,
+        classificacao: classificacao as 'B1' | 'B2' | 'B3' | 'A4' | 'A3a' | 'A3' | 'A2' | 'A1',
+        valorConta: parseMoney(valor),
+        bandeira: BANDEIRA_KEY[bandeira] ?? 'verde',
+        uf: cepResult!.uf,
+      });
+      goResult(apiResultToCalcResult(apiResult));
+    } catch (err) {
+      setSubmitError(err instanceof Error ? err.message : 'Erro ao calcular. Tente novamente.');
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   const cepHint = (() => {
@@ -579,7 +609,7 @@ function HomePage({ goResult }: { goResult: (result: CalcResult) => void }) {
     }
   })();
 
-  const canSubmit = cepStatus === 'success' && Boolean(distribuidora) && Boolean(valor) && (!classeAtual.hasDemanda || Boolean(demanda));
+  const canSubmit = cepStatus === 'success' && distribuidora !== null && Boolean(valor) && (!classeAtual.hasDemanda || Boolean(demanda)) && !submitting;
 
   return (
     <main className="container main">
@@ -631,12 +661,15 @@ function HomePage({ goResult }: { goResult: (result: CalcResult) => void }) {
               </span>
               <select
                 id="distribuidora"
-                value={distribuidora}
-                onChange={(e) => setDistribuidora(e.target.value)}
+                value={distribuidora?.id ?? ''}
+                onChange={(e) => {
+                  const found = cepResult.distribuidoras.find((d) => String(d.id) === e.target.value);
+                  setDistribuidora(found ?? null);
+                }}
                 required
               >
                 {cepResult.distribuidoras.map((d) => (
-                  <option key={d}>{d}</option>
+                  <option key={d.id} value={d.id}>{d.nome}</option>
                 ))}
               </select>
               <span className="field__hint">Identificamos mais de uma distribuidora para esse CEP. Confirme a sua.</span>
@@ -644,7 +677,7 @@ function HomePage({ goResult }: { goResult: (result: CalcResult) => void }) {
           ) : cepStatus === 'success' && distribuidora ? (
             <div className="field field--readonly" aria-live="polite">
               <span>Distribuidora identificada</span>
-              <div className="field__readonlyValue">{distribuidora}</div>
+              <div className="field__readonlyValue">{distribuidora.nome}</div>
             </div>
           ) : null}
 
@@ -715,10 +748,13 @@ function HomePage({ goResult }: { goResult: (result: CalcResult) => void }) {
           </label>
 
           <button type="submit" className="primaryButton" disabled={!canSubmit}>
-            Calcular minha economia agora
+            {submitting ? 'Calculando…' : 'Calcular minha economia agora'}
           </button>
-          {!canSubmit && cepStatus === 'idle' ? (
+          {!canSubmit && cepStatus === 'idle' && !submitting ? (
             <span className="primaryHint">Informe seu CEP para liberar o cálculo.</span>
+          ) : null}
+          {submitError ? (
+            <span className="primaryHint primaryHint--error">{submitError}</span>
           ) : null}
         </form>
       </section>
@@ -959,10 +995,34 @@ function Footer() {
 
 /* ---------- App ---------- */
 
+type DistribuidorasJson = { distribuidoras: Array<{ id: number; nome: string; uf: string }> };
+
+function useDistribuidorasPorUf() {
+  const [distribuidorasPorUf, setDistribuidorasPorUf] = useState<Record<string, DistribuidoraInfo[]>>({});
+
+  useEffect(() => {
+    fetch('/distribuidoras.json')
+      .then((r) => r.json() as Promise<DistribuidorasJson>)
+      .then((json) => {
+        const grouped: Record<string, DistribuidoraInfo[]> = {};
+        for (const { id, nome, uf } of json.distribuidoras) {
+          (grouped[uf] ??= []).push({ id, nome });
+        }
+        setDistribuidorasPorUf(grouped);
+      })
+      .catch(() => {
+        // silently fails — useCepLookup devolve lista vazia para o UF
+      });
+  }, []);
+
+  return distribuidorasPorUf;
+}
+
 export default function App() {
-  const { page, goHome, goResult: navigate, goSection } = usePage();
+  const { page, goHome: _goHome, goResult: navigate, goSection } = usePage();
   const [calcResult, setCalcResult] = useState<CalcResult | null>(null);
   const embedded = new URLSearchParams(window.location.search).get('embed') === '1';
+  const distribuidorasPorUf = useDistribuidorasPorUf();
 
   const handleGoResult = useCallback(
     (result: CalcResult) => {
@@ -975,7 +1035,11 @@ export default function App() {
   return (
     <div className="page">
       {!embedded && <Header goSection={goSection} />}
-      {page === 'home' ? <HomePage goResult={handleGoResult} /> : <ResultPage result={calcResult} />}
+      {page === 'home' ? (
+        <HomePage goResult={handleGoResult} distribuidorasPorUf={distribuidorasPorUf} />
+      ) : (
+        <ResultPage result={calcResult} />
+      )}
       {!embedded && <Footer />}
     </div>
   );
