@@ -289,7 +289,7 @@ function Header({ goSection }: { goSection: (id: string) => void }) {
         </a>
 
         <nav className="nav" aria-label="Principal">
-          <a href="https://voltera.com.br/#sobre" className="nav__link">
+          <a href="https://voltera.com.br/sobre-nos" className="nav__link" target="_blank" rel="noopener noreferrer">
             Sobre nós
           </a>
           <NavDropdown
