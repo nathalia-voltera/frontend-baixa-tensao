@@ -2,27 +2,28 @@ type Bandeira = 'verde' | 'amarela' | 'vermelha-1' | 'vermelha-2';
 type Classificacao = 'B1' | 'B2' | 'B3' | 'A4' | 'A3a' | 'A3' | 'A2' | 'A1';
 
 interface CalcularPayload {
-  distribuidoraId: number;
+  distribuidora_id: number;
   classificacao: Classificacao;
-  valorConta: number;
+  valor_conta: number;
   bandeira: Bandeira;
   uf: string;
+  demanda_kw?: number;
 }
 
 interface EconomiaBandeira {
-  economiaMensal: number;
-  economiaAnual: number;
-  percentualEconomia: number;
+  economia_mensal: number;
+  economia_anual: number;
+  percentual_economia: number;
 }
 
 export interface CalcularApiResult {
-  bandeiraSelecionada: Bandeira;
-  valorConta: number;
-  economiasPorBandeira: Record<Bandeira, EconomiaBandeira>;
-  projecaoAnual: Array<{ ano: string; economias: Record<Bandeira, number> }>;
+  bandeira_selecionada: Bandeira;
+  valor_conta: number;
+  economias_por_bandeira: Record<Bandeira, EconomiaBandeira>;
+  projecao_anual: Array<{ ano: string; economias: Record<Bandeira, number> }>;
 }
 
-const API_URL = (import.meta.env.VITE_API_URL as string | undefined) ?? 'http://localhost:3001';
+const API_URL = (import.meta.env.VITE_API_URL as string | undefined) ?? 'http://localhost:8000/api';
 
 export async function calcularApi(payload: CalcularPayload): Promise<CalcularApiResult> {
   const resp = await fetch(`${API_URL}/calcular`, {
@@ -40,6 +41,5 @@ export async function calcularApi(payload: CalcularPayload): Promise<CalcularApi
     throw new Error(body.error ?? `Erro ${resp.status}`);
   }
 
-  const json = await resp.json() as { data: CalcularApiResult };
-  return json.data;
+  return resp.json() as Promise<CalcularApiResult>;
 }

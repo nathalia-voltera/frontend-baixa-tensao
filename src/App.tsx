@@ -499,23 +499,23 @@ function computeResult(valorStr: string, bandeira: string): CalcResult {
 }
 
 function apiResultToCalcResult(api: CalcularApiResult): CalcResult {
-  const { bandeiraSelecionada, valorConta, economiasPorBandeira, projecaoAnual } = api;
-  const sel = economiasPorBandeira[bandeiraSelecionada];
-  const valorVoltera = valorConta - sel.economiaMensal;
+  const { bandeira_selecionada, valor_conta, economias_por_bandeira, projecao_anual } = api;
+  const sel = economias_por_bandeira[bandeira_selecionada];
+  const valorVoltera = valor_conta - sel.economia_mensal;
 
   return {
     monthlyCards: [
-      { label: 'Sua conta de luz hoje', value: fmtBRL(valorConta), icon: iconDistribuidora, accent: false, highlight: false },
+      { label: 'Sua conta de luz hoje', value: fmtBRL(valor_conta), icon: iconDistribuidora, accent: false, highlight: false },
       { label: 'Sua conta de luz com a Voltera', value: fmtBRL(valorVoltera), icon: iconEconomia, accent: false, highlight: true },
-      { label: 'Economia média', value: `${Math.round(sel.percentualEconomia)}%`, icon: iconValor, accent: true, highlight: false },
+      { label: 'Economia média', value: `${Math.round(sel.percentual_economia)}%`, icon: iconValor, accent: true, highlight: false },
     ],
     tariffCards: [
-      { label: 'Em bandeira verde', value: fmtBRL(economiasPorBandeira.verde.economiaMensal), variant: 'verde' },
-      { label: 'Em bandeira amarela', value: fmtBRL(economiasPorBandeira.amarela.economiaMensal), variant: 'amarela' },
-      { label: 'Em bandeira vermelha 1', value: fmtBRL(economiasPorBandeira['vermelha-1'].economiaMensal), variant: 'vermelha-1' },
-      { label: 'Em bandeira vermelha 2', value: fmtBRL(economiasPorBandeira['vermelha-2'].economiaMensal), variant: 'vermelha-2' },
+      { label: 'Em bandeira verde', value: fmtBRL(economias_por_bandeira.verde.economia_mensal), variant: 'verde' },
+      { label: 'Em bandeira amarela', value: fmtBRL(economias_por_bandeira.amarela.economia_mensal), variant: 'amarela' },
+      { label: 'Em bandeira vermelha 1', value: fmtBRL(economias_por_bandeira['vermelha-1'].economia_mensal), variant: 'vermelha-1' },
+      { label: 'Em bandeira vermelha 2', value: fmtBRL(economias_por_bandeira['vermelha-2'].economia_mensal), variant: 'vermelha-2' },
     ],
-    yearlyData: projecaoAnual.map(({ ano, economias }) => ({
+    yearlyData: projecao_anual.map(({ ano, economias }) => ({
       year: ano,
       bars: [
         economias.verde,
@@ -576,11 +576,12 @@ function HomePage({
 
     try {
       const apiResult = await calcularApi({
-        distribuidoraId: distribuidora.id,
+        distribuidora_id: distribuidora.id,
         classificacao: classificacao as 'B1' | 'B2' | 'B3' | 'A4' | 'A3a' | 'A3' | 'A2' | 'A1',
-        valorConta: parseMoney(valor),
+        valor_conta: parseMoney(valor),
         bandeira: BANDEIRA_KEY[bandeira] ?? 'verde',
         uf: cepResult!.uf,
+        ...(classeAtual.hasDemanda && demanda ? { demanda_kw: parseFloat(demanda) } : {}),
       });
       goResult(apiResultToCalcResult(apiResult));
     } catch (err) {

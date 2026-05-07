@@ -15,7 +15,7 @@ npm install
 npm run dev
 ```
 
-Acesse `http://localhost:5173`.
+Acesse `http://localhost:5173`. O back-end precisa estar rodando em `http://localhost:8000` (ver [lp-backend](../lp-backend/README.md)).
 
 ## Build
 
@@ -31,7 +31,7 @@ Gera os arquivos estáticos em `dist/`.
 
 1. Configure o `.env` apontando para a URL do back-end no EC2:
    ```
-   VITE_API_URL=https://api.seudominio.com
+   VITE_API_URL=https://api.seudominio.com/api
    ```
 
 2. Gere o build:
@@ -54,15 +54,7 @@ Gera os arquivos estáticos em `dist/`.
    }
    ```
 
-4. O back-end precisa ter `CORS_ORIGIN` configurado com a URL do front (`https://seudominio.com`).
-
-## Modo embed
-
-Adicione `?embed=1` na URL para ocultar o header e footer — usado quando a página é incorporada dentro do site da Voltera (que já possui seu próprio layout).
-
-```
-https://seudominio.com/?embed=1
-```
+4. O back-end precisa ter `CORS_ALLOWED_ORIGINS` configurado com a URL do front (`https://seudominio.com`).
 
 ## Variáveis de ambiente
 
@@ -74,7 +66,15 @@ cp .env.example .env
 
 | Variável | Descrição | Padrão |
 |---|---|---|
-| `VITE_API_URL` | URL base da API de cálculo | `http://localhost:3001` |
+| `VITE_API_URL` | URL base da API de cálculo | `http://localhost:8000/api` |
+
+## Modo embed
+
+Adicione `?embed=1` na URL para ocultar o header e footer — usado quando a página é incorporada dentro do site da Voltera (que já possui seu próprio layout).
+
+```
+https://seudominio.com/?embed=1
+```
 
 ## Atualizar distribuidoras
 
