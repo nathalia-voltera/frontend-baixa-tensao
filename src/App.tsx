@@ -295,13 +295,13 @@ function Header({ goSection }: { goSection: (id: string) => void }) {
           <NavDropdown
             label="Soluções"
             items={[
-              { text: 'Mercado livre de energia', href: 'https://voltera.com.br/mercado-livre-de-energia' },
+              { text: 'Mercado livre de energia', href: 'https://voltera.com.br/solucoes' },
               { text: 'Parcerias', href: 'https://voltera.com.br/parcerias' },
             ]}
           />
-          <button type="button" onClick={() => goSection('inicio')}>
+          <a href="https://voltera.com.br/economia" className="nav__link" target="_blank" rel="noopener noreferrer">
             Economia
-          </button>
+          </a>
           <NavDropdown
             label="Conteúdo"
             items={[
@@ -309,9 +309,9 @@ function Header({ goSection }: { goSection: (id: string) => void }) {
               { text: 'Cálculo de Economia', href: '#inicio' },
             ]}
           />
-          <button type="button" onClick={() => goSection('contato')}>
+          <a href="https://voltera.com.br/contato" className="nav__link" target="_blank" rel="noopener noreferrer">
             Contato
-          </button>
+          </a>
         </nav>
 
         <a
@@ -904,12 +904,17 @@ function ResultPage({ result }: { result: CalcResult | null }) {
           </p>
         </div>
         <div className="cta__actions">
-          <button type="button" className="cta__button">
+          <a
+            href="https://voltera.com.br/cadastro/usuario/novo"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="cta__button"
+          >
             <span className="cta__buttonIcon">
               <img src={iconChart} alt="" aria-hidden="true" />
             </span>
             Solicitar estudo personalizado
-          </button>
+          </a>
           <a
             href="https://api.whatsapp.com/send/?phone=5511917769453&text=Ol%C3%A1%21+Quero+saber+como+minha+empresa+pode+economizar+na+conta+de+energia+com+a+Voltera.&type=phone_number&app_absent=0"
             target="_blank"
