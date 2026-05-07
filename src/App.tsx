@@ -270,8 +270,6 @@ function NavDropdown({ label, items }: { label: string; items: { text: string; h
               href={item.href}
               className="nav__dropdownItem"
               role="menuitem"
-              target={item.href.startsWith('http') ? '_blank' : undefined}
-              rel={item.href.startsWith('http') ? 'noopener noreferrer' : undefined}
               onClick={() => setOpen(false)}
             >
               {item.text}
@@ -292,7 +290,7 @@ function Header({ goSection }: { goSection: (id: string) => void }) {
         </a>
 
         <nav className="nav" aria-label="Principal">
-          <a href="https://voltera.com.br/sobre-nos" className="nav__link" target="_blank" rel="noopener noreferrer">
+          <a href="https://voltera.com.br/sobre-nos" className="nav__link">
             Sobre nós
           </a>
           <NavDropdown
@@ -302,7 +300,7 @@ function Header({ goSection }: { goSection: (id: string) => void }) {
               { text: 'Parcerias', href: 'https://voltera.com.br/parcerias' },
             ]}
           />
-          <a href="https://voltera.com.br/economia" className="nav__link" target="_blank" rel="noopener noreferrer">
+          <a href="https://voltera.com.br/economia" className="nav__link">
             Economia
           </a>
           <NavDropdown
@@ -312,7 +310,7 @@ function Header({ goSection }: { goSection: (id: string) => void }) {
               { text: 'Cálculo de Economia', href: '#inicio' },
             ]}
           />
-          <a href="https://voltera.com.br/contato" className="nav__link" target="_blank" rel="noopener noreferrer">
+          <a href="https://voltera.com.br/contato" className="nav__link">
             Contato
           </a>
         </nav>
