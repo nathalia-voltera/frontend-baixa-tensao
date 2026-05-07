@@ -17,9 +17,12 @@ import certCcee from './assets/figma/footer/cert-ccee.png';
 
 
 import iconDistribuidora from './assets/figma/cards/icon-distribuidora.svg';
+import iconDistribuidoraInstrucao from './assets/figma/cards/icon-distribuidora-instrucao.svg';
 import iconClassificacao from './assets/figma/cards/icon-classificacao.svg';
-import iconValor from './assets/figma/cards/icon-valor.svg';
+import iconDinheiro from './assets/figma/cards/icon-dinheiro.svg';
+import iconBandeira from './assets/figma/cards/icon-bandeira.svg';
 import iconEconomia from './assets/figma/cards/icon-economia.svg';
+import iconEconomiaInstrucao from './assets/figma/cards/icon-economia-instrucao.svg';
 
 import iconChart from './assets/figma/cta/icon-chart.svg';
 import iconHeadset from './assets/figma/cta/icon-headset.svg';
@@ -334,10 +337,10 @@ function Header({ goSection }: { goSection: (id: string) => void }) {
 
 const instructionCards = [
   {
-    icon: iconDistribuidora,
-    title: 'Informe o seu CEP',
+    icon: iconDistribuidoraInstrucao,
+    title: 'Selecione sua distribuidora',
     description:
-      'A partir do CEP identificamos automaticamente a distribuidora responsável pelo fornecimento de energia no seu endereço.',
+      'A partir do CEP, identificamos automaticamente a distribuidora responsável pelo fornecimento de energia do seu endereço.',
   },
   {
     icon: iconClassificacao,
@@ -346,13 +349,13 @@ const instructionCards = [
       'Selecione entre residencial, comercial, industrial ou rural. Em caso de dúvida, escolha a mais próxima da sua atividade.',
   },
   {
-    icon: iconValor,
+    icon: iconBandeira,
     title: 'Informe o valor da conta e a bandeira',
     description:
       'Essas informações ajudam a calcular uma estimativa de economia mais precisa para a sua empresa.',
   },
   {
-    icon: iconEconomia,
+    icon: iconEconomiaInstrucao,
     title: 'Confira a sua economia',
     description:
       'Em poucos segundos você descobre o quanto pode economizar, em diferentes bandeiras tarifárias, nos próximos 5 anos.',
@@ -483,19 +486,35 @@ function computeResult(valorStr: string, bandeira: string): CalcResult {
     monthlyCards: [
       { label: 'Sua conta de luz hoje', value: fmtBRL(valorNum), icon: iconDistribuidora, accent: false, highlight: false },
       { label: 'Sua conta de luz com a Voltera', value: fmtBRL(valorVoltera), icon: iconEconomia, accent: false, highlight: true },
-      { label: 'Economia média', value: `${pct}%`, icon: iconValor, accent: true, highlight: false },
+      { label: 'Economia média', value: `${pct}%`, icon: iconDinheiro, accent: true, highlight: false },
     ],
-    tariffCards: [
-      { label: 'Em bandeira verde', value: fmtBRL(BASE_MONTHLY_SAVINGS.verde * scale), variant: 'verde' },
-      { label: 'Em bandeira amarela', value: fmtBRL(BASE_MONTHLY_SAVINGS.amarela * scale), variant: 'amarela' },
-      { label: 'Em bandeira vermelha 1', value: fmtBRL(BASE_MONTHLY_SAVINGS['vermelha-1'] * scale), variant: 'vermelha-1' },
-      { label: 'Em bandeira vermelha 2', value: fmtBRL(BASE_MONTHLY_SAVINGS['vermelha-2'] * scale), variant: 'vermelha-2' },
-    ],
+    tariffCards: sortedTariffCards(
+      bandeiraKey,
+      (v) => fmtBRL(BASE_MONTHLY_SAVINGS[v] * scale),
+    ),
     yearlyData: BASE_YEARLY_BARS.map((bars, i) => ({
       year: PROJECTION_YEARS[i],
       bars: bars.map((b) => Math.round(b * scale)) as [number, number, number, number],
     })),
   };
+}
+
+const TARIFF_CARDS_BASE: Array<{ label: string; variant: BandeiraVariant }> = [
+  { label: 'Em bandeira verde', variant: 'verde' },
+  { label: 'Em bandeira amarela', variant: 'amarela' },
+  { label: 'Em bandeira vermelha 1', variant: 'vermelha-1' },
+  { label: 'Em bandeira vermelha 2', variant: 'vermelha-2' },
+];
+
+function sortedTariffCards(
+  selected: BandeiraVariant,
+  getValue: (v: BandeiraVariant) => string,
+): CalcResult['tariffCards'] {
+  const ordered = [
+    ...TARIFF_CARDS_BASE.filter((c) => c.variant === selected),
+    ...TARIFF_CARDS_BASE.filter((c) => c.variant !== selected),
+  ];
+  return ordered.map((c) => ({ ...c, value: getValue(c.variant) }));
 }
 
 function apiResultToCalcResult(api: CalcularApiResult): CalcResult {
@@ -507,14 +526,12 @@ function apiResultToCalcResult(api: CalcularApiResult): CalcResult {
     monthlyCards: [
       { label: 'Sua conta de luz hoje', value: fmtBRL(valor_conta), icon: iconDistribuidora, accent: false, highlight: false },
       { label: 'Sua conta de luz com a Voltera', value: fmtBRL(valorVoltera), icon: iconEconomia, accent: false, highlight: true },
-      { label: 'Economia média', value: `${Math.round(sel.percentual_economia)}%`, icon: iconValor, accent: true, highlight: false },
+      { label: 'Economia média', value: `${Math.round(sel.percentual_economia)}%`, icon: iconDinheiro, accent: true, highlight: false },
     ],
-    tariffCards: [
-      { label: 'Em bandeira verde', value: fmtBRL(economias_por_bandeira.verde.economia_mensal), variant: 'verde' },
-      { label: 'Em bandeira amarela', value: fmtBRL(economias_por_bandeira.amarela.economia_mensal), variant: 'amarela' },
-      { label: 'Em bandeira vermelha 1', value: fmtBRL(economias_por_bandeira['vermelha-1'].economia_mensal), variant: 'vermelha-1' },
-      { label: 'Em bandeira vermelha 2', value: fmtBRL(economias_por_bandeira['vermelha-2'].economia_mensal), variant: 'vermelha-2' },
-    ],
+    tariffCards: sortedTariffCards(
+      bandeira_selecionada as BandeiraVariant,
+      (v) => fmtBRL(economias_por_bandeira[v].economia_mensal),
+    ),
     yearlyData: projecao_anual.map(({ ano, economias }) => ({
       year: ano,
       bars: [
@@ -638,14 +655,14 @@ function HomePage({
         <form className="simulationForm" onSubmit={onSubmit} aria-label="Formulário de cálculo de economia">
           <label className="field" htmlFor="cep">
             <span>
-              CEP do imóvel<span className="field__required">*</span>
+              Insira o seu CEP<span className="field__required">*</span>
             </span>
             <input
               id="cep"
               type="text"
               inputMode="numeric"
               autoComplete="postal-code"
-              placeholder="00000-000"
+              placeholder="Insira o seu CEP"
               value={cep}
               onChange={(e) => setCep(formatCep(e.target.value))}
               maxLength={9}
@@ -673,7 +690,7 @@ function HomePage({
                   <option key={d.id} value={d.id}>{d.nome}</option>
                 ))}
               </select>
-              <span className="field__hint">Identificamos mais de uma distribuidora para esse CEP. Confirme a sua.</span>
+              <span className="field__hint">Identificamos mais de uma distribuidora na sua região.</span>
             </label>
           ) : cepStatus === 'success' && distribuidora ? (
             <div className="field field--readonly" aria-live="polite">
@@ -719,13 +736,13 @@ function HomePage({
                 placeholder="Ex.: 150"
                 required
               />
-              <span className="field__hint">Você encontra a demanda contratada na sua fatura, em "Demanda".</span>
+              <span className="field__hint">Você encontra essa informação na sua fatura, em demanda.</span>
             </label>
           ) : null}
 
           <label className="field" htmlFor="valor">
             <span>
-              Valor da fatura<span className="field__required">*</span>
+              Valor da sua conta de luz<span className="field__required">*</span>
             </span>
             <input
               id="valor"

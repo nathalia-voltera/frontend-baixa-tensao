@@ -18,6 +18,7 @@ const HISTORICO: Record<string, Bandeira> = {
   '2026-02': 'Verde',
   '2026-03': 'Verde',
   '2026-04': 'Verde',
+  '2026-05': 'Amarela',
 };
 
 const FALLBACK: Bandeira = 'Verde';
