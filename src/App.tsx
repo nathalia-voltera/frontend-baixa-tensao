@@ -688,7 +688,7 @@ function HomePage({
                   <option key={d.id} value={d.id}>{d.nome}</option>
                 ))}
               </select>
-              <span className="field__hint">Identificamos mais de uma distribuidora na sua região.</span>
+              <span className="field__hint">Identificamos mais de uma distribuidora na sua região. Verifique se selecionamos a correta!</span>
             </label>
           ) : cepStatus === 'success' && distribuidora ? (
             <div className="field field--readonly" aria-live="polite">
