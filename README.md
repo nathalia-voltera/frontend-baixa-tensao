@@ -86,15 +86,8 @@ Para adicionar ou corrigir uma distribuidora em desenvolvimento, edite diretamen
 { "id": 38, "nome": "Nova Distribuidora", "uf": "XX" }
 ```
 
-## Atualizar a bandeira tarifária
+## Bandeira tarifária
 
-Edite o arquivo `src/bandeiraVigente.ts` e adicione o mês vigente no objeto `HISTORICO`:
+A bandeira vigente é pré-selecionada automaticamente a partir do endpoint `GET /api/bandeira-vigente` do back-end, que lê a tabela `tariff_flags` do banco da Voltera.
 
-```ts
-const HISTORICO: Record<string, Bandeira> = {
-  '2026-04': 'Verde',
-  '2026-05': 'Verde', // ← adicionar aqui todo mês
-};
-```
-
-Fonte oficial: [ANEEL — Bandeiras Tarifárias](https://www.aneel.gov.br/bandeiras-tarifarias)
+O arquivo `src/bandeiraVigente.ts` serve apenas como fallback local (enquanto a requisição carrega ou se o back-end estiver indisponível) — não precisa ser atualizado manualmente.
