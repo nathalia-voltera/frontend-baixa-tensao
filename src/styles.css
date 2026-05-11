@@ -412,14 +412,14 @@ select:focus-visible {
   display: block;
   font-size: 12px;
   line-height: 16px;
-  color: var(--gray-2);
+  color: #666666 !important;
   margin-top: -4px;
   transform: scale(0.7);
   transform-origin: left;
 }
 
 .field__hint--error {
-  color: var(--asterisk);
+  color: #666666 !important;
 }
 
 .field--readonly {
