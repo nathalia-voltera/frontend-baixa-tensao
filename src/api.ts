@@ -25,6 +25,20 @@ export interface CalcularApiResult {
 
 const API_URL = (import.meta.env.VITE_API_URL as string | undefined) ?? 'http://localhost:8000/api';
 
+const BANDEIRA_LABEL: Record<string, string> = {
+  'verde': 'Verde',
+  'amarela': 'Amarela',
+  'vermelha-1': 'Vermelha 1',
+  'vermelha-2': 'Vermelha 2',
+};
+
+export async function getBandeiraVigente(): Promise<string> {
+  const resp = await fetch(`${API_URL}/bandeira-vigente`);
+  if (!resp.ok) throw new Error('falha ao buscar bandeira vigente');
+  const data = await resp.json() as { bandeira: string };
+  return BANDEIRA_LABEL[data.bandeira] ?? 'Verde';
+}
+
 export async function calcularApi(payload: CalcularPayload): Promise<CalcularApiResult> {
   const resp = await fetch(`${API_URL}/calcular`, {
     method: 'POST',

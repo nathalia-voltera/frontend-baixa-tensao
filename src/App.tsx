@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { calcularApi, CalcularApiResult } from './api';
+import { calcularApi, getBandeiraVigente, CalcularApiResult } from './api';
 import { bandeiraVigente } from './bandeiraVigente';
 
 import logoVoltera from './assets/figma/header/logo-voltera.svg';
@@ -556,8 +556,10 @@ function HomePage({
   const [classificacao, setClassificacao] = useState<string>(CLASSIFICACOES[0].code);
   const [demanda, setDemanda] = useState('');
   const [valor, setValor] = useState('');
-  const bandeiraDoMes = useMemo(() => bandeiraVigente(), []);
-  const [bandeira, setBandeira] = useState<string>(bandeiraDoMes);
+  const [bandeira, setBandeira] = useState<string>(() => bandeiraVigente());
+  useEffect(() => {
+    getBandeiraVigente().then(setBandeira).catch(() => {});
+  }, []);
 
   const { status: cepStatus, result: cepResult } = useCepLookup(cep, distribuidorasPorUf);
 
