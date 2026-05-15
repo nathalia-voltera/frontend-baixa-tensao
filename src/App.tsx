@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { calcularApi, getBandeiraVigente, CalcularApiResult } from './api';
+import { calcularApi, getBandeiraVigente, getDistribuidoras, CalcularApiResult } from './api';
 import { bandeiraVigente } from './bandeiraVigente';
 
 import logoVoltera from './assets/figma/header/logo-voltera.svg';
@@ -36,7 +36,7 @@ type Page = 'home' | 'result';
 
 /* ---------- Domain constants ---------- */
 
-type DistribuidoraInfo = { id: number; nome: string };
+type DistribuidoraInfo = { id: string; nome: string };
 
 type Classificacao = {
   code: string;
@@ -1018,24 +1018,13 @@ function Footer() {
 
 /* ---------- App ---------- */
 
-type DistribuidorasJson = { distribuidoras: Array<{ id: number; nome: string; uf: string }> };
-
 function useDistribuidorasPorUf() {
   const [distribuidorasPorUf, setDistribuidorasPorUf] = useState<Record<string, DistribuidoraInfo[]>>({});
 
   useEffect(() => {
-    fetch('/distribuidoras.json')
-      .then((r) => r.json() as Promise<DistribuidorasJson>)
-      .then((json) => {
-        const grouped: Record<string, DistribuidoraInfo[]> = {};
-        for (const { id, nome, uf } of json.distribuidoras) {
-          (grouped[uf] ??= []).push({ id, nome });
-        }
-        setDistribuidorasPorUf(grouped);
-      })
-      .catch(() => {
-        // silently fails — useCepLookup devolve lista vazia para o UF
-      });
+    getDistribuidoras()
+      .then(setDistribuidorasPorUf)
+      .catch(() => {});
   }, []);
 
   return distribuidorasPorUf;

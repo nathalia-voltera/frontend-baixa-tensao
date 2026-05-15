@@ -2,7 +2,7 @@ type Bandeira = 'verde' | 'amarela' | 'vermelha-1' | 'vermelha-2';
 type Classificacao = 'B1' | 'B2' | 'B3' | 'A4' | 'A3a' | 'A3' | 'A2' | 'A1';
 
 interface CalcularPayload {
-  distribuidora_id: number;
+  distribuidora_id: string;
   classificacao: Classificacao;
   valor_conta: number;
   bandeira: Bandeira;
@@ -31,6 +31,13 @@ const BANDEIRA_LABEL: Record<string, string> = {
   'vermelha-1': 'Vermelha 1',
   'vermelha-2': 'Vermelha 2',
 };
+
+export async function getDistribuidoras(): Promise<Record<string, { id: number; nome: string }[]>> {
+  const resp = await fetch(`${API_URL}/distribuidoras`);
+  if (!resp.ok) throw new Error('falha ao buscar distribuidoras');
+  const data = await resp.json() as { data: Record<string, { id: number; nome: string }[]> };
+  return data.data;
+}
 
 export async function getBandeiraVigente(): Promise<string> {
   const resp = await fetch(`${API_URL}/bandeira-vigente`);
