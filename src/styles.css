@@ -799,8 +799,6 @@ select:focus-visible {
   flex-direction: column;
   justify-content: space-between;
   height: 240px;
-  padding-top: 6px;
-  padding-bottom: 30px;
 }
 
 .chart__yLabels span {

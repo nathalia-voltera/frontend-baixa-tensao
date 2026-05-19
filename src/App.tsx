@@ -36,12 +36,19 @@ type Page = 'home' | 'result';
 
 /* ---------- Domain constants ---------- */
 
-type DistribuidoraInfo = { id: number; nome: string };
+type DistribuidoraInfo = { id: string; nome: string };
 
 type Classificacao = {
   code: string;
   label: string;
   hasDemanda: boolean;
+};
+
+const DEMANDA_PLACEHOLDER: Record<string, string> = {
+  A4: 'Ex.: 300',
+  A3: 'Ex.: 2.000',
+  A2: 'Ex.: 10.000',
+  A1: 'Ex.: 50.000',
 };
 
 const CLASSIFICACOES: Classificacao[] = [
@@ -730,10 +737,10 @@ function HomePage({
                 id="demanda"
                 type="number"
                 min={0}
-                step="0.01"
+                step={100}
                 value={demanda}
                 onChange={(e) => setDemanda(e.target.value)}
-                placeholder="Ex.: 150"
+                placeholder={DEMANDA_PLACEHOLDER[classificacao] ?? 'Ex.: 150'}
                 required
               />
               <span className="field__hint">Você encontra essa informação na sua fatura, em demanda.</span>
@@ -800,9 +807,8 @@ function AnnualChart({ yearlyData, tariffCards }: Pick<CalcResult, 'yearlyData' 
   const mag = Math.pow(10, Math.floor(Math.log10(rawStep)));
   const norm = rawStep / mag;
   const step = (norm <= 1 ? 1 : norm <= 2 ? 2 : norm <= 5 ? 5 : 10) * mag;
-  const yMax = Math.ceil(maxBar / step) * step;
-  const yLabels: number[] = [];
-  for (let v = yMax; v >= 0; v -= step) yLabels.push(v);
+  const yMax = step * 6;
+  const yLabels = Array.from({ length: 7 }, (_, i) => yMax - i * step);
 
   return (
     <div className="chart" aria-label="Projeção de economia anual">
@@ -815,26 +821,10 @@ function AnnualChart({ yearlyData, tariffCards }: Pick<CalcResult, 'yearlyData' 
         <div className="chart__grid">
           {yearlyData.map((g) => (
             <div className="chart__group" key={g.year}>
-              <div
-                className="chart__bar chart__bar--verde"
-                style={{ height: `${(g.bars[0] / yMax) * CHART_H}px` }}
-                data-value={fmtBRL(g.bars[0])}
-              />
-              <div
-                className="chart__bar chart__bar--amarela"
-                style={{ height: `${(g.bars[1] / yMax) * CHART_H}px` }}
-                data-value={fmtBRL(g.bars[1])}
-              />
-              <div
-                className="chart__bar chart__bar--vermelha-1"
-                style={{ height: `${(g.bars[2] / yMax) * CHART_H}px` }}
-                data-value={fmtBRL(g.bars[2])}
-              />
-              <div
-                className="chart__bar chart__bar--vermelha-2"
-                style={{ height: `${(g.bars[3] / yMax) * CHART_H}px` }}
-                data-value={fmtBRL(g.bars[3])}
-              />
+              <div className="chart__bar chart__bar--verde" style={{ height: `${(g.bars[0] / yMax) * CHART_H}px` }} data-value={fmtBRL(g.bars[0])} />
+              <div className="chart__bar chart__bar--amarela" style={{ height: `${(g.bars[1] / yMax) * CHART_H}px` }} data-value={fmtBRL(g.bars[1])} />
+              <div className="chart__bar chart__bar--vermelha-1" style={{ height: `${(g.bars[2] / yMax) * CHART_H}px` }} data-value={fmtBRL(g.bars[2])} />
+              <div className="chart__bar chart__bar--vermelha-2" style={{ height: `${(g.bars[3] / yMax) * CHART_H}px` }} data-value={fmtBRL(g.bars[3])} />
             </div>
           ))}
         </div>
@@ -1018,21 +1008,14 @@ function Footer() {
 
 /* ---------- App ---------- */
 
-type DistribuidorasJson = { distribuidoras: Array<{ id: number; nome: string; uf: string }> };
-
 function useDistribuidorasPorUf() {
   const [distribuidorasPorUf, setDistribuidorasPorUf] = useState<Record<string, DistribuidoraInfo[]>>({});
 
   useEffect(() => {
-    fetch('/distribuidoras.json')
-      .then((r) => r.json() as Promise<DistribuidorasJson>)
-      .then((json) => {
-        const grouped: Record<string, DistribuidoraInfo[]> = {};
-        for (const { id, nome, uf } of json.distribuidoras) {
-          (grouped[uf] ??= []).push({ id, nome });
-        }
-        setDistribuidorasPorUf(grouped);
-      })
+    const API_URL = (import.meta.env.VITE_API_URL as string | undefined) ?? 'http://localhost:8000/api';
+    fetch(`${API_URL}/distribuidoras`)
+      .then((r) => r.json() as Promise<{ data: Record<string, DistribuidoraInfo[]> }>)
+      .then((json) => setDistribuidorasPorUf(json.data))
       .catch(() => {
         // silently fails — useCepLookup devolve lista vazia para o UF
       });

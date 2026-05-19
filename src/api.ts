@@ -2,7 +2,7 @@ type Bandeira = 'verde' | 'amarela' | 'vermelha-1' | 'vermelha-2';
 type Classificacao = 'B1' | 'B2' | 'B3' | 'A4' | 'A3a' | 'A3' | 'A2' | 'A1';
 
 interface CalcularPayload {
-  distribuidora_id: number;
+  distribuidora_id: string;
   classificacao: Classificacao;
   valor_conta: number;
   bandeira: Bandeira;
