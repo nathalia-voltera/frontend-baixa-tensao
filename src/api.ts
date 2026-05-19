@@ -32,6 +32,13 @@ const BANDEIRA_LABEL: Record<string, string> = {
   'vermelha-2': 'Vermelha 2',
 };
 
+export async function getDistribuidoras(): Promise<Record<string, { id: string; nome: string }[]>> {
+  const resp = await fetch(`${API_URL}/distribuidoras`);
+  if (!resp.ok) throw new Error('falha ao buscar distribuidoras');
+  const data = await resp.json() as { data: Record<string, { id: string; nome: string }[]> };
+  return data.data;
+}
+
 export async function getBandeiraVigente(): Promise<string> {
   const resp = await fetch(`${API_URL}/bandeira-vigente`);
   if (!resp.ok) throw new Error('falha ao buscar bandeira vigente');

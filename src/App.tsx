@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { calcularApi, getBandeiraVigente, CalcularApiResult } from './api';
+import { calcularApi, getBandeiraVigente, getDistribuidoras, CalcularApiResult } from './api';
 import { bandeiraVigente } from './bandeiraVigente';
 
 import logoVoltera from './assets/figma/header/logo-voltera.svg';
@@ -1012,13 +1012,9 @@ function useDistribuidorasPorUf() {
   const [distribuidorasPorUf, setDistribuidorasPorUf] = useState<Record<string, DistribuidoraInfo[]>>({});
 
   useEffect(() => {
-    const API_URL = (import.meta.env.VITE_API_URL as string | undefined) ?? 'http://localhost:8000/api';
-    fetch(`${API_URL}/distribuidoras`)
-      .then((r) => r.json() as Promise<{ data: Record<string, DistribuidoraInfo[]> }>)
-      .then((json) => setDistribuidorasPorUf(json.data))
-      .catch(() => {
-        // silently fails — useCepLookup devolve lista vazia para o UF
-      });
+    getDistribuidoras()
+      .then(setDistribuidorasPorUf)
+      .catch(() => {});
   }, []);
 
   return distribuidorasPorUf;
