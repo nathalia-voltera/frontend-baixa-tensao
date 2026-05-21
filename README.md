@@ -15,7 +15,7 @@ npm install
 npm run dev
 ```
 
-Acesse `http://localhost:5173`. O back-end precisa estar rodando em `http://localhost:8000` (ver [lp-backend](../lp-backend/README.md)).
+Acesse `http://localhost:5173`. O back-end precisa estar rodando em `http://localhost:8000` (ver [backend-baixa-tensao](../backend-baixa-tensao/README.md)).
 
 ## Build
 
@@ -76,18 +76,12 @@ Adicione `?embed=1` na URL para ocultar o header e footer — usado quando a pá
 https://seudominio.com/?embed=1
 ```
 
-## Atualizar distribuidoras
+## Distribuidoras
 
-Os nomes e IDs das distribuidoras ficam em `public/distribuidoras.json`. O back-end sobrescreve esse arquivo periodicamente a partir do banco de dados — **não edite manualmente em produção**.
-
-Para adicionar ou corrigir uma distribuidora em desenvolvimento, edite diretamente o JSON:
-
-```json
-{ "id": 38, "nome": "Nova Distribuidora", "uf": "XX" }
-```
+A lista de distribuidoras é carregada dinamicamente do endpoint `GET /api/distribuidoras` do back-end, agrupada por UF. Não há arquivo estático de distribuidoras no front — qualquer alteração no banco reflete automaticamente após o `cache_updater` rodar no back-end.
 
 ## Bandeira tarifária
 
-A bandeira vigente é pré-selecionada automaticamente a partir do endpoint `GET /api/bandeira-vigente` do back-end, que lê a tabela `tariff_flags` do banco da Voltera.
+A bandeira vigente é pré-selecionada automaticamente a partir do endpoint `GET /api/bandeira-vigente`, que lê a tabela `tariff_flags` do banco da Voltera.
 
 O arquivo `src/bandeiraVigente.ts` serve apenas como fallback local (enquanto a requisição carrega ou se o back-end estiver indisponível) — não precisa ser atualizado manualmente.
